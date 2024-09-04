@@ -23,7 +23,7 @@ jobs:
       # 2) Install package manager
       - name: Install SwiftPm ... # Add any necessary package management
         run: |
-           apt install clang libicu-dev libtinfo5 libncurses5 libxml2
+           sudo apt-get install -y clang libicu-dev libtinfo5 libncurses5 libxml2
            wget https://swift.org/builds/swift-5.3.3-release/ubuntu1804/swift-5.3.3-RELEASE/swift-5.3.3-RELEASE-ubuntu18.04.tar.gz
            tar -xvzf swift-5.3.3-RELEASE-ubuntu18.04.tar.gz && rm -f swift-5.3.3-RELEASE-ubuntu18.04.tar.gz
            export PATH=$PATH:./usr/bin

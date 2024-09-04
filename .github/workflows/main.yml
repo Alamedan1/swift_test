@@ -47,4 +47,4 @@ jobs:
             --scan-types sca \
             --base-uri https://eu.ast.checkmarx.net \
             --tenant dp_wp_account \
-            --project-name KB_GHA_JVL_Resolver \
+            --project-name KB_GHA_Swift_Test_Resolver \

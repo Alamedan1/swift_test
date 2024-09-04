@@ -1,0 +1,50 @@
+name: Checkmarx One Scan
+on:
+  push:
+    branches:
+      - main
+      - master
+      - dev
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # 1) Download SCA Resolver
+      - name: Download SCA Resolver
+        run: |
+          wget https://sca-downloads.s3.amazonaws.com/cli/latest/ScaResolver-linux64.tar.gz
+          tar -xzvf ScaResolver-linux64.tar.gz
+          rm -rf ScaResolver-linux64.tar.gz  
+      # 2) Install package manager
+      - name: Install SwiftPm ... # Add any necessary package management
+        run: |
+           apt install -y clang libicu-dev libtinfo5 libncurses5 libxml2
+           wget https://swift.org/builds/swift-5.3.3-release/ubuntu1804/swift-5.3.3-RELEASE/swift-5.3.3-RELEASE-ubuntu18.04.tar.gz
+           tar -xvzf swift-5.3.3-RELEASE-ubuntu18.04.tar.gz && rm -f swift-5.3.3-RELEASE-ubuntu18.04.tar.gz
+           export PATH=$PATH:./usr/bin
+           swift package -version
+           
+      # 3) Run SCA Resolver in offline mode to generate the .cxsca-results.json
+      - name: Run SCA Resolver offline Scan
+        run: |
+          ./ScaResolver offline -r "./cx-results/.cxsca-results.json" -s . -n KB_GHA_Swift_Test_Resolver --log-level Debug    
+          sudo apt install maven npm 
+      # 4) Run AST CLI scan with source location -s pointing to the folder containing results file created in the offline step 
+      - name: Run Checkmarx AST CLI Scan
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          /home/linuxbrew/.linuxbrew/bin/brew install checkmarx/ast-cli/ast-cli
+          /home/linuxbrew/.linuxbrew/Cellar/ast-cli/*/bin/cx \
+            scan create \
+            -s ./cx-results/ \
+            --agent GitHub \
+            --branch main \
+            --scan-types sca \
+            --base-uri https://eu.ast.checkmarx.net \
+            --tenant dp_wp_account \
+            --project-name KB_GHA_JVL_Resolver \
